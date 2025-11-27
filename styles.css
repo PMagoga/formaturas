@@ -106,6 +106,7 @@ tr:hover td:not(.empty-placeholder) {
 /* Estilo para as células vazias (opcional) */
 td:empty {
   background-color: #f8f8f8;
+  min-height: 15px;
 }
 
 /* --- ESTILOS VISUAIS PARA DRAG AND DROP (ADICIONADOS) --- */
@@ -118,9 +119,8 @@ td:empty {
 
 /* Estilo para a CÉLULA VAGA após o arraste (Placeholder) */
 .empty-placeholder {
-  background-color: #fff0f0 !important; /* Vermelho claro para indicar vaga */
   min-width: 50px;
-  height: 100%;
+  min-height: 15px;
 }
 
 /* Efeito de Drag-Over: Target de Drop VÁLIDO */
