@@ -1,0 +1,131 @@
+/* --- Estilos do Usuário e Ajustes para Drag/Drop --- */
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Fonte moderna e legível */
+  background-color: #f4f4f9; /* Fundo suave */
+  color: #333; /* Cor de texto padrão */
+  margin: 0;
+  padding: 3px;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+h1 {
+  color: #1a446c; /* Azul marinho/militar */
+  border-bottom: 3px solid #1a446c;
+  padding-bottom: 10px;
+  margin-bottom: 30px;
+  font-size: 2em;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* --- Layout dos Blocos --- */
+.blocos {
+  display: flex; /* Para colocar Estado Maior e Tropa lado a lado */
+}
+
+.grupamento {
+  width: 900px;
+}
+
+.estado_maior {
+  display: block;
+  gap: 10px;
+}
+
+.tropa {
+  display: block;
+}
+
+.servicos {
+  margin-left: 30px;
+}
+
+/* --- Estilo Base das Tabelas --- */
+table {
+  border-collapse: collapse; /* Remove o espaço entre as bordas das células */
+  width: auto;
+  margin: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave para destaque */
+  background-color: #ffffff; /* Fundo branco para as tabelas */
+  border: 1px solid #161515;
+}
+
+/* Estilo para as tabelas menores do Estado Maior */
+.estado_maior table {
+  width: auto; /* Permite que a largura se ajuste ao conteúdo */
+  min-width: 120px; /* Garante um tamanho mínimo */
+  max-width: 100%;
+  padding: 3px;
+  margin-bottom: 10px;
+  flex: 1 1 auto; /* Permite que as tabelas se ajustem em linhas */
+}
+
+/* --- Estilo do Cabeçalho (<th>) --- */
+th {
+  background-color: #1a446c; /* Azul Marinho Forte */
+  color: white;
+  font-weight: bold;
+  padding: 3px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid #1a446c;
+}
+
+/* Estilo especial para o cabeçalho do Grupamento */
+.tropa th {
+  background-color: #4a6fa5; /* Um azul um pouco mais claro */
+  font-size: 1.1em;
+  padding: 3px;
+}
+
+/* --- Estilo das Células de Dados (<td>) --- */
+td {
+  padding: 3px 5px;
+  text-align: center;
+  border: 1px solid #1a1a1a;
+  cursor: move; /* Indica que a célula é arrastável */
+  transition: background-color 0.2s;
+}
+
+/* Cores de fundo alternadas para as linhas (Tabela da Tropa) */
+.tropa tr:nth-child(even) td {
+  background-color: #f2f2f7; /* Cor clara para linhas pares */
+}
+
+/* Cor de fundo ao passar o mouse */
+tr:hover td:not(.empty-placeholder) {
+  background-color: #e0e6f0;
+}
+
+/* Estilo para as células vazias (opcional) */
+td:empty {
+  background-color: #f8f8f8;
+}
+
+/* --- ESTILOS VISUAIS PARA DRAG AND DROP (ADICIONADOS) --- */
+.draggable-content {
+  display: block;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Estilo para a CÉLULA VAGA após o arraste (Placeholder) */
+.empty-placeholder {
+  background-color: #fff0f0 !important; /* Vermelho claro para indicar vaga */
+  border: 2px dashed #e74c3c !important; /* Borda tracejada */
+  box-shadow: inset 0 0 5px rgba(231, 76, 60, 0.5);
+  min-width: 50px;
+  height: 100%;
+}
+
+/* Efeito de Drag-Over: Target de Drop VÁLIDO */
+.drag-over-valid {
+  background-color: #c9e6c9 !important; /* Verde claro para indicar drop permitido */
+  border: 2px solid #2ecc71 !important;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
+}
