@@ -129,3 +129,7 @@ td:empty {
   border: 2px solid #2ecc71 !important;
   box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
 }
+
+#resetButton {
+  max-height: 35px;
+}
