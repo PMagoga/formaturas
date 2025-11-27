@@ -10,6 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 2. Configura os listeners para as células
   setupDragDropListeners();
+
+  // 3. Adiciona listener ao botão de reset (necessário aqui, pois o botão está no HTML)
+  document
+    .getElementById("resetButton")
+    .addEventListener("click", handleResetClick);
 });
 
 function setupDragDropListeners() {
@@ -17,6 +22,13 @@ function setupDragDropListeners() {
   const cells = document.querySelectorAll("td");
 
   cells.forEach((cell) => {
+    // Remove listeners antigos antes de adicionar novos para evitar duplicação (especialmente após loadState)
+    cell.removeEventListener("dragstart", handleDragStart);
+    cell.removeEventListener("dragover", handleDragOver);
+    cell.removeEventListener("dragleave", handleDragLeave);
+    cell.removeEventListener("drop", handleDrop);
+    cell.removeEventListener("dragend", handleDragEnd);
+
     // Garante que a célula tem o conteúdo dentro do span para padronizar
     const content = cell.innerHTML.trim();
     if (content !== "") {
@@ -30,6 +42,7 @@ function setupDragDropListeners() {
       cell.innerHTML = ""; // Garante que células logicamente vazias estejam visualmente limpas
     }
 
+    // Adiciona os listeners
     cell.addEventListener("dragstart", handleDragStart);
     cell.addEventListener("dragover", handleDragOver);
     cell.addEventListener("dragleave", handleDragLeave);
@@ -44,7 +57,6 @@ function saveState() {
   // Salva o HTML de toda a área de conteúdo (dentro do div.blocos)
   const blocksContainer = document.querySelector(".blocos");
   if (blocksContainer) {
-    // Nota: Apenas salva o innerHTML do container que tem as tabelas
     localStorage.setItem("graduationLayout", blocksContainer.innerHTML);
     console.log("Estado salvo com sucesso!");
   }
@@ -60,15 +72,21 @@ function loadState() {
       console.log("Estado carregado do salvamento anterior!");
 
       // É crucial reconfigurar os listeners após carregar um novo HTML!
-      setupDragDropListeners();
-
-      // Recarrega o estado visual de células vazias
-      document.querySelectorAll("td").forEach((cell) => {
-        if (cell.innerHTML.trim() === "") {
-          cell.removeAttribute("draggable");
-        }
-      });
+      // NOTE: setupDragDropListeners será chamado novamente após loadState.
     }
+  }
+}
+
+// 3. Função de Reset/Limpeza do LocalStorage
+function handleResetClick() {
+  if (
+    confirm(
+      "Tem certeza que deseja limpar o LocalStorage? Isso forçará a tabela a recarregar o layout do código HTML."
+    )
+  ) {
+    // CHAVE CORRIGIDA: usa "graduationLayout"
+    localStorage.removeItem("graduationLayout");
+    window.location.reload(); // Recarrega a página para aplicar a versão limpa
   }
 }
 
@@ -78,8 +96,14 @@ function handleDragStart(e) {
   draggedCell = this;
   isMoveSuccessful = false; // Reseta a flag para cada novo arrasto
 
+  const contentSpan = this.querySelector(".draggable-content");
+  if (!contentSpan) {
+    e.preventDefault(); // Impede o arraste se não houver conteúdo arrastável
+    return;
+  }
+
   // Armazena o conteúdo da célula
-  draggedContent = this.querySelector(".draggable-content").innerHTML;
+  draggedContent = contentSpan.innerHTML;
   e.dataTransfer.setData("text/plain", draggedContent);
   e.dataTransfer.effectAllowed = "move";
 
@@ -89,7 +113,6 @@ function handleDragStart(e) {
     draggedCell.innerHTML = "";
     draggedCell.classList.add("empty-placeholder");
     draggedCell.removeAttribute("draggable"); // A célula vazia não deve ser arrastável
-    draggedCell.removeEventListener("dragstart", handleDragStart); // Remove o listener da célula original que agora está vazia
   }, 0);
 }
 
@@ -136,11 +159,7 @@ function handleDrop(e) {
     // 2. Marca o movimento como bem-sucedido
     isMoveSuccessful = true;
 
-    // 3. Atualiza os listeners do novo elemento (necessário para arrastar de novo)
-    // O setupDragDropListeners já adiciona todos, mas vamos ser específicos aqui.
-    this.addEventListener("dragstart", handleDragStart);
-
-    // 4. Salva o novo estado
+    // 3. Salva o novo estado
     saveState();
 
     // A célula original (draggedCell) já está limpa e marcada como placeholder
@@ -155,11 +174,6 @@ function handleDragEnd(e) {
     if (!isMoveSuccessful) {
       draggedCell.innerHTML = `<span class="draggable-content">${draggedContent}</span>`;
       draggedCell.setAttribute("draggable", "true");
-      // Adiciona o listener de volta à célula restaurada
-      draggedCell.addEventListener("dragstart", handleDragStart);
-    } else {
-      // Se foi bem-sucedido, a célula original permanece vazia (move behavior)
-      // Já removemos o atributo draggable e limpamos o innerHTML no handleDragStart(setTimeout)
     }
 
     // 2. Limpa o visual do placeholder
@@ -175,4 +189,8 @@ function handleDragEnd(e) {
   document
     .querySelectorAll(".drag-over-valid")
     .forEach((el) => el.classList.remove("drag-over-valid"));
+
+  // Reconfigura os listeners na célula original caso o drop tenha sido restaurado.
+  // setupDragDropListeners() irá cuidar de re-adicionar todos os listeners corretamente.
+  setupDragDropListeners();
 }
