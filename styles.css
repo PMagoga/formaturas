@@ -89,6 +89,8 @@ td {
   border: 1px solid #1a1a1a;
   cursor: move; /* Indica que a célula é arrastável */
   transition: background-color 0.2s;
+  min-width: 50px;
+  min-height: 25px;
 }
 
 /* Cores de fundo alternadas para as linhas (Tabela da Tropa) */
@@ -129,3 +131,4 @@ td:empty {
   border: 2px solid #2ecc71 !important;
   box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
 }
+
