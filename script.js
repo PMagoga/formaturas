@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 1. Tenta carregar o estado salvo ao iniciar
   loadState();
 
-  // 2. Configura os listeners para as células
+  // 2. Configura os listeners para as células (Drag/Drop e o novo DblClick)
   setupDragDropListeners();
 
   // 3. Adiciona listener ao botão de reset (necessário aqui, pois o botão está no HTML)
@@ -22,17 +22,19 @@ function setupDragDropListeners() {
   const cells = document.querySelectorAll("td");
 
   cells.forEach((cell) => {
-    // Remove listeners antigos antes de adicionar novos para evitar duplicação (especialmente após loadState)
+    // --- Limpeza de Listeners Antigos ---
     cell.removeEventListener("dragstart", handleDragStart);
     cell.removeEventListener("dragover", handleDragOver);
     cell.removeEventListener("dragleave", handleDragLeave);
     cell.removeEventListener("drop", handleDrop);
     cell.removeEventListener("dragend", handleDragEnd);
+    // REMOVE O NOVO LISTENER ANTES DE ADICIONAR
+    cell.removeEventListener("dblclick", handleDblClick);
 
-    // Garante que a célula tem o conteúdo dentro do span para padronizar
+    // --- Configuração de Arrastabilidade (Drag/Drop) ---
     const content = cell.innerHTML.trim();
     if (content !== "") {
-      // Se não tiver a classe .draggable-content, adiciona-a
+      // Garante que o conteúdo está dentro do span para padronizar
       if (!cell.querySelector(".draggable-content")) {
         cell.innerHTML = `<span class="draggable-content">${content}</span>`;
       }
@@ -42,13 +44,86 @@ function setupDragDropListeners() {
       cell.innerHTML = ""; // Garante que células logicamente vazias estejam visualmente limpas
     }
 
-    // Adiciona os listeners
+    // --- Adição de Listeners (Drag/Drop) ---
     cell.addEventListener("dragstart", handleDragStart);
     cell.addEventListener("dragover", handleDragOver);
     cell.addEventListener("dragleave", handleDragLeave);
     cell.addEventListener("drop", handleDrop);
     cell.addEventListener("dragend", handleDragEnd);
+
+    // --- NOVO LISTENER: Edição ao Duplo Clique ---
+    cell.addEventListener("dblclick", handleDblClick);
   });
+}
+
+// --- NOVO BLOCO: FUNÇÕES DE EDIÇÃO DE CÉLULA ---
+
+function handleDblClick() {
+  // `this` refere-se à célula (td) clicada
+  const cell = this;
+  const contentSpan = cell.querySelector(".draggable-content");
+
+  // Se a célula já estiver em modo de edição, ignora.
+  if (cell.querySelector("input[type='text']")) {
+    return;
+  }
+
+  // 1. Obtém o conteúdo atual
+  const currentContent = contentSpan ? contentSpan.innerHTML.trim() : "";
+
+  // 2. Cria o campo de input
+  const inputField = document.createElement("input");
+  inputField.type = "text";
+  inputField.value = currentContent;
+  inputField.style.width = "100%";
+  inputField.style.boxSizing = "border-box";
+  inputField.style.textAlign = "center";
+  inputField.style.textTransform = "uppercase";
+  inputField.style.fontWeight = "bold";
+  inputField.style.fontSize = "1em";
+  inputField.style.border = "none";
+  inputField.style.outline = "none";
+  inputField.style.padding = "0";
+
+  // 3. Substitui o conteúdo da célula pelo campo de input
+  cell.innerHTML = "";
+  cell.appendChild(inputField);
+
+  // 4. Foca no campo de input
+  inputField.focus();
+
+  // Seleciona todo o texto para facilitar a digitação imediata
+  inputField.select();
+
+  // 5. Adiciona listeners para salvar (Enter ou Perda de Foco)
+  inputField.addEventListener("blur", () => saveEdit(cell, inputField));
+  inputField.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      saveEdit(cell, inputField);
+    }
+  });
+}
+
+function saveEdit(cell, inputField) {
+  const newContent = inputField.value.trim();
+
+  // 1. Atualiza o HTML da célula
+  if (newContent !== "") {
+    // Adiciona o novo conteúdo formatado dentro do span
+    cell.innerHTML = `<span class="draggable-content">${newContent}</span>`;
+    cell.setAttribute("draggable", "true");
+  } else {
+    // Se o conteúdo estiver vazio, limpa a célula e remove o atributo draggable
+    cell.innerHTML = "";
+    cell.removeAttribute("draggable");
+  }
+
+  // 2. Salva o novo estado no LocalStorage
+  saveState();
+
+  // 3. Reconfigura os listeners na célula atualizada (incluindo drag/drop e dblclick)
+  // Isso é importante porque o innerHTML foi modificado, potencialmente removendo o span original.
+  setupDragDropListeners();
 }
 
 // --- FUNÇÕES DE PERSISTÊNCIA (localStorage) ---
@@ -57,6 +132,13 @@ function saveState() {
   // Salva o HTML de toda a área de conteúdo (dentro do div.blocos)
   const blocksContainer = document.querySelector(".blocos");
   if (blocksContainer) {
+    // Certifique-se de que nenhum campo de input de edição esteja aberto antes de salvar
+    const openInput = blocksContainer.querySelector("input[type='text']");
+    if (openInput) {
+      // Se houver um input aberto, força o salvamento primeiro (melhoria)
+      saveEdit(openInput.closest("td"), openInput);
+    }
+
     localStorage.setItem("graduationLayout", blocksContainer.innerHTML);
     console.log("Estado salvo com sucesso!");
   }
@@ -72,7 +154,7 @@ function loadState() {
       console.log("Estado carregado do salvamento anterior!");
 
       // É crucial reconfigurar os listeners após carregar um novo HTML!
-      // NOTE: setupDragDropListeners será chamado novamente após loadState.
+      // setupDragDropListeners será chamado novamente após loadState (via DOMContentLoaded).
     }
   }
 }
@@ -90,7 +172,7 @@ function handleResetClick() {
   }
 }
 
-// --- FUNÇÕES DRAG AND DROP ---
+// --- FUNÇÕES DRAG AND DROP (Sem alterações no comportamento principal) ---
 
 function handleDragStart(e) {
   draggedCell = this;
@@ -190,7 +272,6 @@ function handleDragEnd(e) {
     .querySelectorAll(".drag-over-valid")
     .forEach((el) => el.classList.remove("drag-over-valid"));
 
-  // Reconfigura os listeners na célula original caso o drop tenha sido restaurado.
-  // setupDragDropListeners() irá cuidar de re-adicionar todos os listeners corretamente.
+  // Reconfigura os listeners.
   setupDragDropListeners();
 }
