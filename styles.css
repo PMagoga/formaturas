@@ -133,3 +133,9 @@ td:empty {
 #resetButton {
   max-height: 35px;
 }
+
+/* --- ESTILO NOVO: Célula Selecionada (Fundo Verde Claro) --- */
+.cell-selected {
+  background-color: #63d163 !important; /* Verde mais claro */
+  border: 2px solid #4caf50 !important; /* Borda sutil para destaque */
+}
